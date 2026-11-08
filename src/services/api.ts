@@ -33,16 +33,45 @@ let actor: { name: string; role: RoleId } = { name: 'anonymous', role: 'ROLE-12'
 
 const clone = <T>(v: T): T => (v === undefined ? v : JSON.parse(JSON.stringify(v)));
 
+/**
+ * Real-backend mode only: a few screens (command palette, Ask/briefing grounding, config flags) read the
+ * local `db` object directly. Mirror the server's GET responses into it so those screens show live data.
+ * Only data the signed-in role was allowed to fetch ever lands here.
+ */
+const MIRROR: Record<string, keyof typeof db> = {
+  '/tasks': 'tasks', '/appointment-requests': 'requests', '/visitors': 'visitors', '/queue/today': 'queue',
+  '/gov/wards': 'wards', '/calendar': 'calendar', '/decide': 'decide', '/decisions': 'decisions', '/admin/config': 'config',
+};
+
 async function call<T>(req: Req, mock: () => T | Promise<T>, opts: { mutate?: boolean } = {}): Promise<T> {
   let result: T;
   if (USE_MOCK) {
     await sleep(req.method === 'GET' ? 220 + Math.random() * 200 : 300 + Math.random() * 250);
     result = clone(await mock());
   } else {
-    result = await http<T>(req.method, req.path, req.body);
+    try {
+      result = await http<T>(req.method, req.path, req.body);
+    } catch (e) {
+      // 401 = session expired/unknown on the server → back to sign-in (contract §1).
+      if (e instanceof ApiError && e.status === 401 && !req.path.startsWith('/auth/')) {
+        try { sessionStorage.removeItem('aasiom.session'); } catch { /* ignore */ }
+        setAuthToken(null);
+        if (window.location.pathname !== '/') window.location.assign('/');
+      }
+      throw e;
+    }
+    const key = req.method === 'GET' ? MIRROR[req.path] : undefined;
+    if (key && result != null) (db as Record<string, unknown>)[key] = result;
   }
   if (opts.mutate || req.method !== 'GET') { if (USE_MOCK) persistDb(); bus.emit(); }
   return result;
+}
+
+/** Real-backend mode: prime the mirrored config so feature flags (AI, SMS, governance) match the server. */
+function primeFromServer() {
+  if (USE_MOCK) return;
+  http<typeof db.config>('GET', '/admin/config').then((c) => { db.config = c; bus.emit(); }).catch(() => { /* not signed in yet */ });
+  void import('./ai').then((m) => m.refreshAiStatus());
 }
 
 /** Append-only hash-chained audit event (mock of PLT-M02). */
@@ -101,8 +130,8 @@ export const api = {
         actor = { name: user.name, role: user.role };
         audit('auth.sign_in', deviceName);
         return { user, token: uid('TOK'), deviceName, signedInAt: new Date().toISOString() };
-      }),
-    resume: (s: Session) => { actor = { name: s.user.name, role: s.user.role }; setAuthToken(s.token); },
+      }).then((s) => { actor = { name: s.user.name, role: s.user.role }; setAuthToken(s.token); if (s.user.role !== 'ROLE-11') primeFromServer(); return s; }),
+    resume: (s: Session) => { actor = { name: s.user.name, role: s.user.role }; setAuthToken(s.token); if (s.user.role !== 'ROLE-11') primeFromServer(); },
     signOut: () => call<void>({ method: 'POST', path: '/auth/sign-out' }, () => { audit('auth.sign_out', 'session'); setAuthToken(null); }),
     devices: () => call({ method: 'GET', path: '/me/devices' }, () => db.devices),
     revokeDevice: (id: string) => call({ method: 'DELETE', path: `/me/devices/${id}` }, () => {
@@ -273,7 +302,7 @@ export const api = {
       audit('queue.reorder', `${db.queue[j].token} — ${reason}`);
     }),
     paused: false as boolean,
-    setPaused: (p: boolean) => call({ method: 'POST', path: '/queue/pause', body: { paused: p } }, () => { api.queue.paused = p; audit(p ? 'queue.pause' : 'queue.resume', 'today'); }),
+    setPaused: (p: boolean) => call({ method: 'POST', path: '/queue/pause', body: { paused: p } }, () => { audit(p ? 'queue.pause' : 'queue.resume', 'today'); }).then(() => { api.queue.paused = p; }),
   },
   visitors: {
     list: () => call<Visitor[]>({ method: 'GET', path: '/visitors' }, () => db.visitors),
@@ -565,6 +594,8 @@ export const api = {
 
   /** Records an AI call in the AI interaction log (SCR-44). */
   logAi: (entry: Omit<AIInteraction, 'id' | 'at' | 'actor'>) => {
+    // With a real backend the AI gateway (/ai/chat) writes the log server-side.
+    if (!USE_MOCK) { bus.emit(); return; }
     db.aiLog.unshift({ ...entry, id: `AI-${String(db.aiLog.length + 1).padStart(4, '0')}`, at: new Date().toISOString(), actor: actor.name.replace(' (synthetic)', '') });
     audit('ai.call', entry.feature);
     if (USE_MOCK) persistDb();

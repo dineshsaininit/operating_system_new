@@ -44,6 +44,9 @@ Public pages need no sign-in: `/public/request` and `/public/status`.
 - **CSV export** on tasks, decision log, audit log, handover dossier and tax pack
 - **Demo persistence** in the browser, with one-click reset
 
+## Running with the backend
+The backend lives in [`server/`](server/README.md). Run `npm run server:install` once, then `npm run server` in one terminal, and put `VITE_API_BASE_URL=/api` in `.env.local` before `npm run dev` in another. `npm run server:test` runs the API tests.
+
 ## For the backend developer
 Read **[BACKEND_API_CONTRACT.md](BACKEND_API_CONTRACT.md)**. In short:
 

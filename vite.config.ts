@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
-    // When the backend is ready, uncomment and point to it so /api calls are proxied:
-    // proxy: { '/api': { target: 'http://localhost:8000', changeOrigin: true } },
+    // Same-origin /api calls go to the backend (server/). Set VITE_API_BASE_URL=/api in .env.local to use it.
+    proxy: { '/api': { target: process.env.VITE_PROXY_TARGET || 'http://localhost:8000', changeOrigin: true } },
   },
 });

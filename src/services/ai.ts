@@ -12,6 +12,7 @@
  */
 import { api } from './api';
 import { db } from '@/data/mockDb';
+import { USE_MOCK, http } from './http';
 
 export interface ChatMsg { role: 'system' | 'user' | 'assistant'; content: string }
 export interface AiResult { text: string; provider: string; model: string }
@@ -28,7 +29,14 @@ const MODELS = {
   mistral: (env.VITE_MISTRAL_MODEL as string) || 'mistral-small-latest',
 };
 
-export const aiConfigured = () => !!(KEYS.groq || KEYS.gemini || KEYS.mistral);
+// With a real backend, provider keys live only on the server; this tracks whether it has any.
+let serverAiConfigured = false;
+export async function refreshAiStatus() {
+  if (USE_MOCK) return;
+  try { serverAiConfigured = (await http<{ configured: boolean }>('GET', '/ai/status')).configured; } catch { serverAiConfigured = false; }
+}
+
+export const aiConfigured = () => (USE_MOCK ? !!(KEYS.groq || KEYS.gemini || KEYS.mistral) : serverAiConfigured);
 export const aiEnabled = () => db.config.aiEnabled && aiConfigured();
 
 const PROHIBITED = /\b(sanction|sign (the|this)|approve (the )?(expenditure|payment|bill)|demolition order|penalt(y|ies) order|enforcement order|issue (an? )?order|quasi[- ]judicial|override (the )?officer)\b/i;
@@ -85,6 +93,8 @@ async function callMistral(messages: ChatMsg[], temperature: number): Promise<Ai
 /** Sends a chat to the first provider that works. Throws if AI is disabled or every provider fails. */
 export async function aiChat(messages: ChatMsg[], feature: string, temperature = 0.3): Promise<AiResult> {
   if (!db.config.aiEnabled) throw new Error('AI is disabled in Configuration (feature flag)');
+  // Real backend: the server-side gateway does guardrails, provider fallback and logging (contract §4).
+  if (!USE_MOCK) { const r = await http<AiResult>('POST', '/ai/chat', { feature, messages, temperature }); api.logAi({ feature, provider: r.provider, model: r.model, promptChars: 0, outcome: 'answered' }); return r; }
   if (!aiConfigured()) throw new Error('No AI provider key configured in .env.local');
 
   const lastUser = [...messages].reverse().find((m) => m.role === 'user')?.content ?? '';
