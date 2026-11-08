@@ -1,0 +1,65 @@
+/** @type {import('tailwindcss').Config} */
+const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'Noto Sans Devanagari', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+      },
+      colors: {
+        bg: v('bg'),
+        surface: v('surface'),
+        'surface-2': v('surface-2'),
+        line: v('line'),
+        ink: v('ink'),
+        muted: v('muted'),
+        primary: v('primary'),
+        'primary-soft': v('primary-soft'),
+        exec: v('exec'),
+        gov: v('gov'),
+        priv: v('priv'),
+        ai: v('ai'),
+        danger: v('danger'),
+        warn: v('warn'),
+        ok: v('ok'),
+        navy: { 900: '#07142A', 800: '#0B1D3A', 700: '#112A52', 600: '#1A3A6B' },
+      },
+      boxShadow: {
+        card: '0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06)',
+        lift: '0 10px 30px -10px rgb(15 23 42 / 0.25)',
+        glow: '0 0 0 4px rgb(var(--primary) / 0.15)',
+      },
+      keyframes: {
+        'fade-in': { from: { opacity: 0, transform: 'translateY(4px)' }, to: { opacity: 1, transform: 'none' } },
+        'fade-up': { from: { opacity: 0, transform: 'translateY(14px)' }, to: { opacity: 1, transform: 'none' } },
+        'scale-in': { from: { opacity: 0, transform: 'scale(.96) translateY(6px)' }, to: { opacity: 1, transform: 'none' } },
+        'backdrop-in': { from: { opacity: 0 }, to: { opacity: 1 } },
+        'slide-in': { from: { transform: 'translateX(100%)' }, to: { transform: 'none' } },
+        'toast-in': { from: { opacity: 0, transform: 'translateX(24px) scale(.97)' }, to: { opacity: 1, transform: 'none' } },
+        pulseRing: { '0%': { boxShadow: '0 0 0 0 rgb(220 38 38 / .5)' }, '100%': { boxShadow: '0 0 0 12px rgb(220 38 38 / 0)' } },
+        float: { '0%,100%': { transform: 'translate3d(0,0,0) scale(1)' }, '50%': { transform: 'translate3d(18px,-22px,0) scale(1.06)' } },
+        'float-slow': { '0%,100%': { transform: 'translate3d(0,0,0)' }, '50%': { transform: 'translate3d(-26px,18px,0)' } },
+        'ping-soft': { '0%': { transform: 'scale(1)', opacity: .7 }, '100%': { transform: 'scale(2.4)', opacity: 0 } },
+        wiggle: { '0%,100%': { transform: 'rotate(0)' }, '20%': { transform: 'rotate(-12deg)' }, '40%': { transform: 'rotate(10deg)' }, '60%': { transform: 'rotate(-6deg)' }, '80%': { transform: 'rotate(4deg)' } },
+      },
+      animation: {
+        'fade-in': 'fade-in .3s ease-out both',
+        'fade-up': 'fade-up .5s cubic-bezier(.2,.8,.2,1) both',
+        'scale-in': 'scale-in .22s cubic-bezier(.2,.8,.2,1) both',
+        'backdrop-in': 'backdrop-in .2s ease-out both',
+        'slide-in': 'slide-in .3s cubic-bezier(.2,.8,.2,1)',
+        'toast-in': 'toast-in .35s cubic-bezier(.2,.8,.2,1) both',
+        'pulse-ring': 'pulseRing 1.4s infinite',
+        float: 'float 14s ease-in-out infinite',
+        'float-slow': 'float-slow 18s ease-in-out infinite',
+        'ping-soft': 'ping-soft 1.6s cubic-bezier(0,0,.2,1) infinite',
+        wiggle: 'wiggle .6s ease-in-out',
+      },
+    },
+  },
+  plugins: [],
+};
