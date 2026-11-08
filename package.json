@@ -1,35 +1,21 @@
 {
-  "name": "aasiom-command-os-frontend",
+  "name": "aasiom-command-os",
   "private": true,
   "version": "1.0.0",
+  "description": "AASIOM Command OS — office operating system for the Office of the Deputy Municipal Commissioner, Zone II (BMC). Frontend + backend monorepo, synthetic data only.",
   "type": "module",
-  "description": "AASIOM COMMAND OS — frontend (Executive OS, Governance OS, Private Wealth & Life OS, Platform). Runs on synthetic data via a mock API layer until the backend is connected.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
-    "preview": "vite preview",
-    "server": "npm --prefix server run dev",
-    "server:install": "npm --prefix server install",
-    "server:test": "npm --prefix server test"
-  },
-  "dependencies": {
-    "clsx": "2.1.1",
-    "lucide-react": "0.441.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-router-dom": "6.26.2",
-    "recharts": "2.12.7",
-    "tailwind-merge": "2.5.2"
-  },
-  "devDependencies": {
-    "@types/react": "18.3.11",
-    "@types/react-dom": "18.3.0",
-    "@vitejs/plugin-react": "4.3.2",
-    "autoprefixer": "10.4.20",
-    "postcss": "8.4.47",
-    "tailwindcss": "3.4.13",
-    "typescript": "5.6.2",
-    "vite": "5.4.8"
+    "setup": "npm --prefix frontend install && npm --prefix backend install && node scripts/setup-env.mjs",
+    "dev": "node scripts/dev.mjs",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "test": "npm --prefix backend test",
+    "typecheck": "npm --prefix frontend run typecheck && npm --prefix backend run typecheck",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
+    "seed": "npm --prefix backend run seed"
   }
 }

@@ -1,91 +1,137 @@
-# AASIOM Command OS — Frontend
+<div align="center">
 
-The frontend for **AASIOM Command OS**, the office operating system for the Office of the Deputy Municipal Commissioner, Zone II (BMC), as specified in the SRS v1.1 and the companion documents in the parent folder.
+<img src="frontend/public/favicon.svg" width="76" alt="AASIOM logo" />
 
-It covers **all 62 screens** in the screen map across the four environments. **Every role** (ROLE-01 to ROLE-12) gets its own navigation and permissions.
+# AASIOM Command OS
 
-| Environment | What's in it |
-|---|---|
-| **Executive OS** (blue) | Today, Decide, Ask (AI), Calendar, Briefing, Tasks, Meetings & minutes, Documents, Peace Mode, Absence & delegation, PA console, Request inbox, Queue, Visitors, Follow-ups, Drafts, Reception check-in, Kiosk |
-| **Governance OS** (green) | Zone dashboard, Ward operations, Officer task inbox, Weekly ward form, Department coordination, Statutory items, Legal & audit, Emergency mode, Dak intake, Inspection capture, Rulebook search, Map, Reports & runbooks, Decision log, Handover dossier, Participate Mumbai (overview, CSR pipeline, project detail, volunteers) |
-| **Platform** (grey) | Sign-in + MFA + device binding, Users & roles, Configuration, Audit & AI logs (hash chain), Operations health, Export & decommissioning, Notification centre, Account & devices, Access denied |
-| **Private Wealth & Life** (purple) | A *separate* app: unlock, Due soon, Holdings, Loans & insurance, Encrypted vault, Family calendar (busy-block projection), Compliance reminders, Expenses & tax pack |
-| **Public** | Request a meeting (with OTP), Visitor status |
+**The office operating system for the Deputy Municipal Commissioner, Zone II (BMC).**
+One desk for every appointment, visitor and commitment. Humans approve everything.
 
-> **Synthetic data only.** Every name, ward and number is fictional (BR-048, Gate 0). Don't put real BMC, visitor or officer data in here.
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Node](https://img.shields.io/badge/Node-20+-339933?logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
+![Tests](https://img.shields.io/badge/API_tests-27_passing-22C55E)
+![Data](https://img.shields.io/badge/data-synthetic_only-F59E0B)
+
+<br />
+
+<img src="docs/screenshots/today.png" alt="Executive Today screen" width="100%" />
+
+</div>
 
 ---
 
-## Run it
+## ✨ What it is
 
-Requires **Node.js 18+**.
+A full-stack implementation of the **SRS v1.1** for AASIOM Command OS. The frontend covers all **62 screens** in the screen map. The backend implements every endpoint in the [API contract](docs/BACKEND_API_CONTRACT.md) and **enforces every rule on the server**.
+
+| | |
+|---|---|
+| 🗓️ **Executive desk** | Today, Decide queue, calendar with focus blocks, morning briefing, Peace Mode, absence and delegation |
+| 🧑‍💼 **PA command centre** | Request inbox, live visitor queue with wait estimates, follow-up board with weekly nudge caps, drafts and outbox, silent whisper |
+| 🛂 **Reception & kiosk** | Fast walk-in registration, tokens, right-desk routing, offline tokens, a Marathi/English self-service kiosk |
+| ✅ **Commitment ledger** | Every instruction tracked to verified closure, using a server-enforced task state machine |
+| 🏛️ **Governance OS** | Zone and ward exceptions, statutory and legal tracking, emergency mode, dak, inspections, Participate Mumbai CSR pipeline |
+| 🤖 **AI assistant** | Grounded, cited answers; voice-to-task; minutes extraction; drafting. A server-side gateway with Groq → Gemini → Mistral fallback. Refuses sanction, sign and enforcement intents. |
+| 🔐 **Security by design** | Role-based access for 13 roles, a SHA-256 hash-chained audit ledger, approval records, and a separate encrypted Private app |
+| 🌏 **Built for the office** | English · मराठी · हिन्दी, dark mode, 200% text, voice read-out, keyboard shortcuts, `Ctrl+K` command palette |
+
+## 🚀 Quick start
+
+Requires **Node.js 20+**.
 
 ```bash
-cd main_code_folder
-npm install
-npm run dev          # opens http://localhost:5173
+git clone https://github.com/dineshsaininit/operating_system_new.git
+cd operating_system_new
+npm run setup      # installs frontend + backend, creates the env files
+npm run dev        # starts both together
 ```
 
-Other scripts: `npm run build` (type-check + production build into `dist/`), `npm run preview`, `npm run typecheck`.
+Open **http://localhost:5173**, pick a role, and sign in. The passkey is simulated, and any digits work for code-based roles. The **Live API** pill in the top bar shows that the frontend is talking to the backend.
 
-### Signing in (demo)
-On the sign-in screen, pick any role, continue, and confirm. The passkey step is simulated; for code-based roles, any digits work. Then bind the device. Each role lands on its own home screen and sees only what it is allowed to. Use **user menu → Switch demo role** to jump between roles, and **Reset demo data** to start fresh. Demo changes are saved in your browser.
+> **AI features:** add your keys to `backend/.env` (`GROQ_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY`). Keys live **only on the server** and never reach the browser.
 
-Public pages need no sign-in: `/public/request` and `/public/status`.
+| Command (repo root) | What it does |
+|---|---|
+| `npm run setup` | Install both apps and create `backend/.env` and `frontend/.env.local` |
+| `npm run dev` | Backend on `:8000` and frontend on `:5173`, with labelled output |
+| `npm test` | Run the 27 backend integration tests |
+| `npm run typecheck` | Type-check both apps |
+| `npm run build` then `npm start` | Single-port production mode: the backend serves the built UI on `:8000` |
+| `npm run seed` | Reset the backend's synthetic dataset |
 
-## Features added beyond the documents
-- **Command palette** (`Ctrl/⌘ + K`): jump to any permitted screen, search tasks, requests and visitors, run actions
-- **Keyboard shortcuts** (`?` for help, `G` then `T/D/K/Q/C/N/A` to navigate)
-- **Live AI assistant** with provider fallback (Groq → Gemini → Mistral), cited answers as clickable record chips, policy refusals for sanction/sign/enforcement requests, and every call logged for the auditor. AI is also used in the briefing summary, voice-to-task, minutes action extraction, communication drafting and rulebook search. Everything AI writes is labelled **AI DRAFT** and needs human approval.
-- **Voice**: push-to-talk dictation (Marathi / Hindi / English) and read-aloud for Today, Briefing and answers
-- **Insights**: baseline metrics with charts (accessible chart/table toggle)
-- **Dark mode**, **text size up to 200%**, **English / मराठी / हिन्दी**, **offline banner**, **reduced-motion support**
-- **Motion design**: page transitions, staggered entrances, animated counters, hover lift, route progress bar, toasts with timers
-- **CSV export** on tasks, decision log, audit log, handover dossier and tax pack
-- **Demo persistence** in the browser, with one-click reset
+## 🏗️ Architecture
 
-## Running with the backend
-The backend lives in [`server/`](server/README.md). Run `npm run server:install` once, then `npm run server` in one terminal, and put `VITE_API_BASE_URL=/api` in `.env.local` before `npm run dev` in another. `npm run server:test` runs the API tests.
+```mermaid
+flowchart LR
+  subgraph Browser["🖥️ Browser — frontend/ (React + Vite)"]
+    UI["62 screens<br/>role-aware navigation"]
+    API["services/api.ts<br/>single data layer"]
+    MOCK[("In-browser mock<br/>demo mode")]
+    UI --> API
+    API -. "VITE_API_BASE_URL empty" .-> MOCK
+  end
 
-## For the backend developer
-Read **[BACKEND_API_CONTRACT.md](BACKEND_API_CONTRACT.md)**. In short:
+  subgraph Server["⚙️ backend/ (Express 5 + TypeScript)"]
+    AUTH["Sessions + RBAC<br/>allow(...roles)"]
+    RULES["Domain rules<br/>BR-011 · BR-013 · BR-049"]
+    AUDIT[("Audit ledger<br/>SHA-256 hash chain")]
+    OFF[("official.json")]
+    GW["AI gateway<br/>/ai/chat"]
+    PRIV["Private service<br/>separate sessions"]
+    PSTORE[("private.json")]
+    AUTH --> RULES --> OFF
+    RULES --> AUDIT
+    PRIV --> PSTORE
+  end
 
-- The UI talks to data **only** through `src/services/api.ts`. Each method declares its REST endpoint next to a mock implementation that shows the exact business rules.
-- Set `VITE_API_BASE_URL=http://localhost:8000/api` in `.env.local` and every call goes to your server instead of the mock.
-- Types for every request and response are in `src/types/index.ts`.
-- Move the AI calls behind a backend `/ai/chat` endpoint before any real use. Only `aiChat()` in `src/services/ai.ts` needs to change.
+  LLM["☁️ Groq → Gemini → Mistral"]
 
-## Project structure
-
-```
-main_code_folder/
-├─ BACKEND_API_CONTRACT.md      ← endpoint contract for the backend
-├─ .env.local                   ← your API keys (gitignored — never commit)
-├─ .env.example                 ← template without secrets
-└─ src/
-   ├─ App.tsx                   ← routes + role guards (lazy-loaded per area)
-   ├─ types/index.ts            ← domain types = data contract
-   ├─ services/
-   │  ├─ api.ts                 ← THE data layer (endpoints + mock)
-   │  ├─ http.ts                ← fetch wrapper for the real backend
-   │  ├─ ai.ts                  ← AI gateway client + guardrails
-   │  └─ useApi.ts, bus.ts      ← data hook with auto-refresh after mutations
-   ├─ data/mockDb.ts            ← synthetic dataset
-   ├─ config/navigation.ts      ← menu, roles, permissions (RBAC)
-   ├─ store/                    ← session/theme/language + toasts
-   ├─ i18n/strings.ts           ← English / Marathi / Hindi
-   ├─ components/               ← UI kit, charts, layout shell, palette
-   └─ pages/
-      ├─ auth/  executive/  pa/  reception/  public/
-      ├─ governance/  platform/  private/
+  API -- "/api (Vite proxy)" --> AUTH
+  API -- "/api/private" --> PRIV
+  GW --> LLM
+  AUTH --> GW
+  PRIV -. "opaque 'Busy' block only" .-> OFF
 ```
 
-Each page header shows its **screen ID** (e.g. `SCR-22`) and **planned release** (P0/P1/P2/P3/PT), so you can trace it back to the SRS.
+- **One data seam.** Every screen reads and writes through `frontend/src/services/api.ts`. With `VITE_API_BASE_URL=/api` it talks to the backend; with it empty, the same UI runs entirely in the browser on synthetic data.
+- **Shared types.** The backend imports `frontend/src/types`, so both sides use one data contract.
+- **The server is the authority.** UI role checks are only for convenience. The backend re-checks every permission and rule, and audits denials.
 
-## Security notes
-- **API keys:** `VITE_*` variables are compiled into the browser bundle. That's fine for this local synthetic demo, but **never deploy this build with real keys**. Put them behind the backend. Also consider rotating the keys you shared, since they've been pasted in chat.
-- Role checks in the UI are for UX only. The **server must enforce all permissions** (see the contract, section 2).
-- The Private app is a separate environment. In production it needs its own service, identity and keys.
+## 📸 Screens
 
-## Tech stack
-React 18 · TypeScript · Vite 5 · Tailwind CSS 3 · React Router 6 · Recharts · lucide-react icons · tailwind-merge.
+| | |
+|:---:|:---:|
+| <img src="docs/screenshots/signin.png" alt="Sign-in" /> **Sign-in:** role, MFA, device binding | <img src="docs/screenshots/today-dark.png" alt="Today in dark mode" /> **Today:** dark mode |
+| <img src="docs/screenshots/decide.png" alt="Decide queue" /> **Decide:** approvals with read-back | <img src="docs/screenshots/ask-ai.png" alt="AI assistant" /> **Ask:** cited AI answers via the server gateway |
+| <img src="docs/screenshots/pa-console.png" alt="PA console" /> **PA console:** queue, whisper, follow-ups | <img src="docs/screenshots/queue.png" alt="Queue management" /> **Queue:** wait estimates, reorder with reason |
+| <img src="docs/screenshots/insights.png" alt="Insights" /> **Insights:** baseline metrics | <img src="docs/screenshots/zone.png" alt="Zone dashboard" /> **Zone dashboard:** exceptions by ward |
+| <img src="docs/screenshots/audit.png" alt="Audit ledger" /> **Audit:** hash-chained ledger | <img src="docs/screenshots/kiosk.png" alt="Kiosk" /> **Kiosk:** Marathi self check-in |
+
+<p align="center"><img src="docs/screenshots/mobile-today.png" alt="Mobile Today" width="280" /><br /><b>Mobile:</b> the executive's four-tab phone layout</p>
+
+## 📁 Repository layout
+
+```
+operating_system_new/
+├─ frontend/          React + TypeScript + Vite app (all 62 screens)      → frontend/README.md
+├─ backend/           Express 5 API — RBAC, rules, audit, AI gateway      → backend/README.md
+├─ docs/
+│  ├─ BACKEND_API_CONTRACT.md   endpoint contract between the two
+│  └─ screenshots/
+├─ scripts/           dev launcher (runs both) + first-run env setup
+└─ package.json       root commands
+```
+
+## 🛡️ Rules enforced on the server
+
+Task state machine (BR-011) · weekly nudge cap (BR-013) · reserved categories need the executive · absence without a delegation record holds, never routes (BR-049) · an approval record for every approval · only approved drafts can be sent · SMS blocked without an approved sender ID · Restricted documents for ROLE-01 only · CSR execution needs an approval reference · Private data fully isolated · **no AI or system account can approve anything.** See [backend/README.md](backend/README.md#how-the-contracts-server-side-rules-are-enforced) for details.
+
+## ⚠️ Synthetic data only
+
+Every name, ward and figure in this repository is fictional. Under the SRS (BR-048, Gate 0), **no real BMC, visitor or officer data** may enter any environment until written institutional authorization exists. This project is a final planning draft pending founder and stakeholder approval.
+
+<div align="center"><sub>Built by the AASIOM Command OS team · frontend and backend developed together</sub></div>
