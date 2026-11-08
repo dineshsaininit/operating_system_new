@@ -63,6 +63,12 @@ Open **http://localhost:5173**, pick a role, and sign in. The passkey is simulat
 | `npm run build` then `npm start` | Single-port production mode: the backend serves the built UI on `:8000` |
 | `npm run seed` | Reset the backend's synthetic dataset |
 
+## ☁️ Deploy to Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/dineshsaininit/operating_system_new)
+
+One web service, using [`render.yaml`](render.yaml): the backend serves the built UI and the API from one HTTPS URL. During setup Render asks for `GROQ_API_KEY`, `GOOGLE_API_KEY` and `MISTRAL_API_KEY`. They're optional, and the app falls back to plain record search without them. On the free plan the service sleeps after 15 minutes idle (the first visit takes about a minute), and the synthetic data resets on each restart or redeploy.
+
 ## 🏗️ Architecture
 
 ```mermaid

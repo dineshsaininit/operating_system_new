@@ -1,0 +1,32 @@
+# Render Blueprint — one web service: the backend serves the built frontend and the API from one URL.
+# Deploy: Render dashboard → New → Blueprint → pick this repo. Then add the AI keys when prompted.
+services:
+  - type: web
+    name: aasiom-command-os
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --prefix frontend --include=dev && npm ci --prefix backend --include=dev && npm --prefix frontend run build
+    startCommand: npm --prefix backend start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: VITE_API_BASE_URL      # baked into the frontend at build time → same-origin /api
+        value: /api
+      - key: DEMO_MODE              # synthetic demo: enables "Reset demo data"
+        value: "true"
+      - key: COOKIE_SECURE          # Render serves HTTPS
+        value: "true"
+      - key: TRUST_PROXY            # one proxy hop in front of the app → real client IPs for rate limiting
+        value: "1"
+      - key: SESSION_TTL_HOURS
+        value: "12"
+      # AI gateway keys — entered in the Render dashboard, never committed
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false

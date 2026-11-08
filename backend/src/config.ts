@@ -20,6 +20,8 @@ export const config = {
   demoMode: bool(env.DEMO_MODE, true),
   sessionTtlHours: Number(env.SESSION_TTL_HOURS || 12),
   cookieSecure: bool(env.COOKIE_SECURE, false),
+  /** Express 'trust proxy'. Behind a host's load balancer (e.g. Render) set TRUST_PROXY=1 so req.ip is the real client. */
+  trustProxy: env.TRUST_PROXY ? (/^\d+$/.test(env.TRUST_PROXY) ? Number(env.TRUST_PROXY) : env.TRUST_PROXY) : 'loopback',
   ai: {
     groqKey: env.GROQ_API_KEY || '',
     geminiKey: env.GOOGLE_API_KEY || '',
