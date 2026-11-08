@@ -11,6 +11,7 @@ import type {
   Visitor, WardSummary,
 } from '@/types';
 import { at, fakeHash, minutesAgo } from '@/lib/utils';
+import { USE_MOCK, http } from '@/services/http';
 
 export const CATEGORIES = [
   'Water supply', 'Building permission', 'Roads', 'Solid waste', 'Storm water drains', 'Health',
@@ -435,4 +436,9 @@ function load(): MockDb {
 }
 export const db: MockDb = load();
 export function persistDb() { try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch { /* quota or blocked */ } }
-export function resetDemoData() { try { localStorage.removeItem(STORE_KEY); } catch { /* ignore */ } window.location.reload(); }
+export function resetDemoData() {
+  try { localStorage.removeItem(STORE_KEY); } catch { /* ignore */ }
+  // Real backend: ask the server to restore its synthetic dataset (only available in DEMO_MODE).
+  if (!USE_MOCK) { http('POST', '/demo/reset').catch(() => undefined).finally(() => window.location.reload()); return; }
+  window.location.reload();
+}
